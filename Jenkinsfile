@@ -15,7 +15,7 @@ pipeline {
     stage('Checkout') {
       steps {
         echo "📦 Checking out source code..."
-        git branch: 'main', url: 'https://github.com/skywonderswhy/eShopOnWeb.git'
+        git branch: 'main', url: 'https://github.com/thegagankapoor/eShopOnWeb.git'
       }
     }
 

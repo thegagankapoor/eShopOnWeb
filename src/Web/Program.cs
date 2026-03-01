@@ -31,6 +31,7 @@ if (useOnlyInMemoryDatabase)
 
     builder.Services.AddDbContext<AppIdentityDbContext>(options =>
         options.UseInMemoryDatabase("Identity"));
+}
 else
 {
     var catalogConnection = builder.Configuration.GetConnectionString("CatalogConnection");
@@ -40,7 +41,6 @@ else
     var identityConnection = builder.Configuration.GetConnectionString("IdentityConnection");
     builder.Services.AddDbContext<AppIdentityDbContext>(options =>
         options.UseSqlServer(identityConnection, sqlOptions => sqlOptions.EnableRetryOnFailure()));
-}
 }
 
 builder.Services.AddCookieSettings();

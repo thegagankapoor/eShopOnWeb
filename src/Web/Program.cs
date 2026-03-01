@@ -22,24 +22,25 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.AddConsole();
 
-if (builder.Environment.IsDevelopment() || builder.Environment.EnvironmentName == "Docker"){
-    // Configure SQL Server (local)
-    Microsoft.eShopWeb.Infrastructure.Dependencies.ConfigureServices(builder.Configuration, builder.Services);
-}
-else
+var useOnlyInMemoryDatabase = builder.Configuration.GetValue<bool>("UseOnlyInMemoryDatabase");
+
+if (useOnlyInMemoryDatabase)
 {
-    // Use local SQL Server Express instead of Azure Key Vault
-    builder.Services.AddDbContext<CatalogContext>(c =>
-    {
-        var connectionString = builder.Configuration.GetConnectionString("CatalogConnection");
-        c.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure());
-    });
+    builder.Services.AddDbContext<CatalogContext>(options =>
+        options.UseInMemoryDatabase("Catalog"));
 
     builder.Services.AddDbContext<AppIdentityDbContext>(options =>
-    {
-        var connectionString = builder.Configuration.GetConnectionString("IdentityConnection");
-        options.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure());
-    });
+        options.UseInMemoryDatabase("Identity"));
+else
+{
+    var catalogConnection = builder.Configuration.GetConnectionString("CatalogConnection");
+    builder.Services.AddDbContext<CatalogContext>(options =>
+        options.UseSqlServer(catalogConnection, sqlOptions => sqlOptions.EnableRetryOnFailure()));
+
+    var identityConnection = builder.Configuration.GetConnectionString("IdentityConnection");
+    builder.Services.AddDbContext<AppIdentityDbContext>(options =>
+        options.UseSqlServer(identityConnection, sqlOptions => sqlOptions.EnableRetryOnFailure()));
+}
 }
 
 builder.Services.AddCookieSettings();
